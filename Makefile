@@ -1,5 +1,5 @@
 .PHONY: clean all
-all: boot_loader disk.img
+all: boot_loader disk.img misc
 
 boot_loader:
 	@echo "=== Building boot_loader ==="
@@ -7,9 +7,15 @@ boot_loader:
 # 	-C : go to the directry and execute Makefile there
 	@echo "=== Build complete ==="
 
-disk.img: 00_boot_loader/boot_loader.bin 
+misc:
+	@echo "=== Building Mischellaneous ==="
+	make -C 05_misc
+	@echo "=== Build Complete ==="
+
+disk.img: boot_loader misc
 	@echo "=== Building disk image"
-	cp 00_boot_loader/boot_loader.bin disk.img
+# 	cp 00_boot_loader/boot_loader.bin disk.img
+	cat 00_boot_loader/boot_loader.bin 05_misc/placeholderOS.bin > disk.img
 	@echo "=== Build complete ==="
 
 clean:
@@ -25,3 +31,6 @@ test: all
 
 test-nox: all
 	qemu-system-x86_64 -m 64 -fda disk.img -boot a -M pc -nographic
+
+gdb: all
+	qemu-system-x86_64 -m 64 -fda disk.img -boot a -M pc -S -gdb tcp::1234
