@@ -29,6 +29,11 @@ test: all
 #	-boot a :  boot from floppy
 # 	-M pc : emulate personal computer
 
+test-usb: all
+# 	qemu-system-x86_64 -m 64M -usb -drive if=none,id=flp,format=raw,file=disk.img -device usb-storage,drive=flp -boot order=a
+	qemu-system-x86_64 -m 64M -machine pc,usb=on -drive if=none,id=usbdisk,format=raw,file=disk.img -device usb-storage,drive=usbdisk -boot order=c
+
+
 test-nox: all
 	qemu-system-x86_64 -m 64 -fda disk.img -boot a -M pc -nographic
 

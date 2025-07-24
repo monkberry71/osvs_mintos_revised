@@ -5,6 +5,7 @@ SECTION .text ; for linker
 jmp 0x07c0:start;
 TOTAL_SECTOR_COUNT: dw 1024
 
+
 start:
     ;;;;;;;;;;;;;;;;;;;;;;;; segment init
     mov ax, 0x07c0
@@ -17,6 +18,8 @@ start:
     mov ss, ax ; set SS segment regi to 0x0000
     mov sp, 0xFFFE
     mov bp, 0xFFFE ; because it is real mode, the sp should point to 0xFFFE, (0xFFFE, 0xFFFF) is one stack element.
+
+    mov byte [BOOT_DRIVE], dl; where did we boot from?
 
     mov si, 0 ; set si to 0
     ; we will use si as a counter
@@ -45,10 +48,23 @@ start:
     ;;;;; let's read floppy with BIOS
 .reset_disk:
     mov ax, 0; service number
-    mov dl, 0; floppy number
+    mov dl, byte [BOOT_DRIVE]
     int 0x13; bios call
 
     jc .handle_disk_error
+
+    ;;; RTFM
+    mov ah, 0x08; BIOS service number 8, read disk params
+    mov dl, byte [BOOT_DRIVE] ; drive to read
+    int 0x13
+    jc .handle_disk_error;
+
+    mov byte [LAST_HEAD], dh
+    mov al, cl;
+    and al, 0x3f; 0b00111111, lower 6 bit is sector info
+
+    mov byte [LAST_SECTOR], al
+    mov byte [LAST_TRACK], ch
 
     mov si, 0x1000; 
     mov es, si
@@ -66,7 +82,7 @@ start:
     mov ch, byte [ TRACK_NUMBER ]
     mov cl, byte [ SECTOR_NUMBER ]
     mov dh, byte [ HEAD_NUMBER ]
-    mov dl, 0x00; which drive to read 0 == floppy
+    mov dl, byte [ BOOT_DRIVE ]; which drive to read 0 == floppy
 
     int 0x13
     jc .handle_disk_error
@@ -77,18 +93,23 @@ start:
     mov al, byte [ SECTOR_NUMBER ]
     add al, 0x01
     mov byte [ SECTOR_NUMBER ], al
-    cmp al, 37
-    jl .read_data; if (al < 19), jump to .read_data
+    cmp al, byte [LAST_SECTOR]
+    jle .read_data; remaning sector exists, go back.
 
-    ; now, 18 sectors are all read, head and sector number need to be resetted.
-    xor byte [ HEAD_NUMBER ], 0x01
-    mov byte [ SECTOR_NUMBER ], 0x01
+    ; now all sectors are read.
+    add byte [HEAD_NUMBER], 0x01; add head
+    mov byte [SECTOR_NUMBER], 0x01; sector reset to 1
 
-    cmp byte [ HEAD_NUMBER ], 0x00;
-    jne .read_data; if HEAD_NUMBER isn't 0, it means it is 1, and it again means that we should read again.
+    mov al, byte [LAST_HEAD]
+    cmp byte [HEAD_NUMBER], al
+    jg .add_track; if (HEAD_NUMBER > LAST_HEAD), goto .add_track
+    
+    jmp .read_data;if not, read again
 
-    add byte [ TRACK_NUMBER ], 0x01;
-    jmp .read_data
+    .add_track:
+        mov byte [HEAD_NUMBER], 0x00
+        add byte [TRACK_NUMBER], 0x01
+        jmp .read_data
 
 .read_end:
     push LOAD_COMPLETE_MSG
@@ -174,6 +195,11 @@ LOAD_COMPLETE_MSG: db 'OS loading complete!', 0
 SECTOR_NUMBER: db 0x02
 HEAD_NUMBER: db 0x00
 TRACK_NUMBER: db 0x00
+
+BOOT_DRIVE: db 0x11 ; 0x80
+LAST_SECTOR: db 0x11 ; 0x3F 63
+LAST_HEAD: db 0x11 ; 0x0F 16
+LAST_TRACK: db 0x11 ; 0xFF
 
 times 510 - ( $- $$) db 0x00
 db 0x55
