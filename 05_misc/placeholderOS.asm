@@ -1,6 +1,8 @@
 [ORG 0x00]
 [BITS 16]
 
+; This is a placeholderOS for bootloader to load. Its each sector just print one's own sector number and jump to next sector. Need to be replaced by kernel.
+
 SECTION .text
 
 jmp 0x1000:start

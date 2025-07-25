@@ -7,15 +7,21 @@ boot_loader:
 # 	-C : go to the directry and execute Makefile there
 	@echo "=== Build complete ==="
 
+kernel32:
+	@echo "=== Building kernel32 ==="
+	make -C 01_kernel32
+	@echo "=== Build complete ==="
+
+
 misc:
 	@echo "=== Building Mischellaneous ==="
 	make -C 05_misc
 	@echo "=== Build Complete ==="
 
-disk.img: boot_loader misc
+disk.img: boot_loader kernel32
 	@echo "=== Building disk image"
 # 	cp 00_boot_loader/boot_loader.bin disk.img
-	cat 00_boot_loader/boot_loader.bin 05_misc/placeholderOS.bin > disk.img
+	cat 00_boot_loader/boot_loader.bin 01_kernel32/kernel32.bin > disk.img
 	@echo "=== Build complete ==="
 
 clean:
