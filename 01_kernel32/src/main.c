@@ -1,5 +1,5 @@
 #include "types.h"
-
+#include "page.h"
 void k_print( int iX, int iY, const char* pc_string);
 BOOL k_init_kernel64_area(void);
 BOOL k_is_memory_enough(void);
@@ -18,6 +18,10 @@ void main(void) {
     } else {
         k_print(0, 5, "64 init failed.");
     }
+
+    k_print(0,6, "IA-32e page tables initializing...");
+    k_initialize_page_tables();
+    k_print(0,6, "IA_32e_page_tables_initializing...Done!");
     for(;;);
 }
 
