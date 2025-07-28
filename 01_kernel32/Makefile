@@ -1,7 +1,7 @@
 .PHONY: clean prepare dep execute_internal_build internal_dep
 
 NASM = nasm
-GCC32 = gcc -c -m32 -ffreestanding
+GCC32 = gcc -c -m32 -ffreestanding -fno-stack-protector -fno-pie -fno-pic
 LD32 = ld -melf_i386 -T ../elf_i386.x -nostdlib -e main -Ttext 0x10200
 OBJCOPY32 = objcopy -j .text -j .data -j .rodata -j .bss -S -O binary
 # -S : stript relocation info, -O output format

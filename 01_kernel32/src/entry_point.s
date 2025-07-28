@@ -2,7 +2,7 @@
 [BITS 16]
 
 ; This is a protected mode (32bit) mode kernel's entry point.
-
+; Why this file is .s? -> .asm files need to be built different from this file.
 SECTION .text
 
 start:
@@ -10,6 +10,20 @@ start:
     mov ds, ax
     mov es, ax; set DS and ES register
 
+    ;;; A20 GATE ACTIVATION
+    mov ax, 0x2401 ; A20 gate service number
+    int 0x15; BIOS interrupt
+
+    jc .A20_ERROR
+    jmp .A20_SUCCESS
+
+    .A20_ERROR:
+    in al, 0x92
+    or al, 0x02
+    and al, 0xFE
+    out 0x92, al
+    
+    .A20_SUCCESS:
     cli ; disable interrupt
     lgdt [GDTR]; set GDT
 
