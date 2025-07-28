@@ -21,7 +21,10 @@ misc:
 disk.img: boot_loader kernel32
 	@echo "=== Building disk image"
 # 	cp 00_boot_loader/boot_loader.bin disk.img
+# 	cat 00_boot_loader/boot_loader.bin 01_kernel32/kernel32.bin > disk.img
+	python3 ./00_boot_loader/sector_count_editor.py ./00_boot_loader/boot_loader.bin 01_kernel32/kernel32.bin
 	cat 00_boot_loader/boot_loader.bin 01_kernel32/kernel32.bin > disk.img
+
 	@echo "=== Build complete ==="
 
 clean:

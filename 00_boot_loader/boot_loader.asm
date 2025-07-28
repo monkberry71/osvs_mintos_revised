@@ -3,7 +3,7 @@
 SECTION .text ; for linker
 
 jmp 0x07c0:start;
-TOTAL_SECTOR_COUNT: dw 1024
+TOTAL_SECTOR_COUNT: dw 2
 
 
 start:

@@ -37,7 +37,7 @@ start:
     call PRINT_MSG
     add esp, 12 ; cdecl!
 
-    jmp $
+    jmp dword 0x08:0x10200
 
 ;;;;;;;;;;;; function area
 PRINT_MSG:
