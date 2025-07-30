@@ -1,10 +1,16 @@
 #include "types.h"
 #include "page.h"
+#include "mode_switch.h"
+
 void k_print( int iX, int iY, const char* pc_string);
 BOOL k_init_kernel64_area(void);
 BOOL k_is_memory_enough(void);
 
 void main(void) {
+
+    uint32_t dwEAX, dwEBX, dwECX, dwEDX;
+    char vc_vendor_str[13] = {0};
+
     k_print(0, 3, "hi, C kernel started.");
     k_print(0, 4, "Minimum mem size checking...");
     if ( !k_is_memory_enough() ) {
@@ -22,6 +28,22 @@ void main(void) {
     k_print(0,6, "IA-32e page tables initializing...");
     k_initialize_page_tables();
     k_print(0,6, "IA_32e_page_tables_initializing...Done!");
+
+    k_read_CPUID(0x00, &dwEAX, &dwEBX, &dwECX, &dwEDX);
+    *((uint32_t*) vc_vendor_str) = dwEBX;
+    *((uint32_t*) vc_vendor_str + 1) = dwEDX;
+    *((uint32_t*) vc_vendor_str + 2) = dwECX;
+    k_print(0, 7, "Processor Vendor Str check...");
+    k_print(45, 7, vc_vendor_str);
+
+    k_read_CPUID(0x80000001, &dwEAX, &dwEBX, &dwECX, &dwEDX);
+    k_print(0, 8, "64bit support check...");
+    if (dwEDX & (1 << 29)) k_print(0,8,"64bit support check...ok!");
+    else {
+        k_print(0,9, "CPU doesn't support 64bit mode.");
+        for(;;);
+    }
+    k_print(0,9, "Going 64bit");
     for(;;);
 }
 

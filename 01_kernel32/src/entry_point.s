@@ -31,11 +31,11 @@ start:
     mov cr0, eax; again if you have protected mode supporting cpu, you can access eax in real mode too, but it is done by assembler to manage this. set cr0 register to go protected mode.
 
     ;;;; protected mode enabled
-    jmp dword 0x08: (.protected_mode - $$ + 0x10000) ; 0x08 is for our segment selector, we cannot just jump to .protected_mode label because our 0x08 segment descriptor's base address is 0.
+    jmp dword 0x18: (.protected_mode - $$ + 0x10000) ; 0x08 is for our segment selector, we cannot just jump to .protected_mode label because our 0x08 segment descriptor's base address is 0.
 
 [BITS 32]
 .protected_mode:
-    mov ax, 0x10
+    mov ax, 0x20
     mov ds, ax
     mov es, ax
     mov fs, ax
@@ -51,7 +51,7 @@ start:
     call PRINT_MSG
     add esp, 12 ; cdecl!
 
-    jmp dword 0x08:0x10200
+    jmp dword 0x18:0x10200
 
 ;;;;;;;;;;;; function area
 PRINT_MSG:
@@ -114,6 +114,20 @@ GDT:
         db 0x00
         db 0x00
         db 0x00
+        db 0x00
+    IA_32e_CODE_Descriptor:
+        dw 0xFFFF
+        dw 0x0000
+        db 0x00
+        db 0x9A ; execute / read
+        db 0xAF
+        db 0x00
+    IA_32e_DATA_Descriptor:
+        dw 0xFFFF
+        dw 0x0000
+        db 0x00
+        db 0x92
+        db 0xAF
         db 0x00
     CODE_Descriptor:
         dw 0xFFFF
