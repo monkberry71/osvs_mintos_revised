@@ -12,14 +12,19 @@ kernel32:
 	make -C 01_kernel32
 	@echo "=== Build complete ==="
 
+kernel64:
+	@echo "=== Building kernel64 ==="
+	make -C 02_kernel64
+	@echo "=== Build complete ==="
+
 
 misc:
 	@echo "=== Building Mischellaneous ==="
 	make -C 05_misc
 	@echo "=== Build Complete ==="
 
-disk.img: boot_loader kernel32
-	@echo "=== Building disk image"
+disk.img: boot_loader kernel32 kernel64
+	@echo "=== Building disk image ==="
 # 	cp 00_boot_loader/boot_loader.bin disk.img
 # 	cat 00_boot_loader/boot_loader.bin 01_kernel32/kernel32.bin > disk.img
 	python3 ./00_boot_loader/sector_count_editor.py ./00_boot_loader/boot_loader.bin 01_kernel32/kernel32.bin
@@ -29,6 +34,8 @@ disk.img: boot_loader kernel32
 
 clean:
 	make -C 00_boot_loader clean
+	make -C 01_kernel32 clean
+	make -C 02_kernel64 clean
 	rm -f disk.img
 
 test: all
