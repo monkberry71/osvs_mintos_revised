@@ -26,7 +26,7 @@ start:
     ; we will use si as a counter
 .screen_clear_loop:
     mov byte [es:si], 0
-    mov byte [es:si+1], 0x0A ; empty the <si>th text buffer
+    mov byte [es:si+1], 0x0F ; empty the <si>th text buffer
 
     add si, 2 ; go to next <si>th buffer
 
@@ -188,7 +188,7 @@ start:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-MSG_1: db 'mint64 boot loader starting...', 0
+MSG_1: db 'mint64 MBR boot loader starting...', 0
 DISK_ERR_MSG: db 'BIOS cannot read from the disk.', 0
 IMAGE_LOADING_MSG: db 'OS Image loading...', 0
 LOAD_COMPLETE_MSG: db 'OS loading complete!', 0

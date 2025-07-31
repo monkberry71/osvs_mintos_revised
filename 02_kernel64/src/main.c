@@ -3,7 +3,7 @@
 void k_print(int x, int y, const char* str);
 
 void main(void) {
-    k_print(0, 10, "IA-32e Mode C kernel Starting.");
+    k_print(0, 11, "IA-32e Mode C kernel Starting.");
 }
 
 void k_print(int x, int y, const char* str) {

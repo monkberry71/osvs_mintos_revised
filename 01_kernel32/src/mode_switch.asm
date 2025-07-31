@@ -2,6 +2,8 @@
 
 global k_read_CPUID, k_switch_kernel64
 
+extern k_print
+
 SECTION .text
 
 ; Return CPUID
@@ -64,7 +66,14 @@ k_switch_kernel64:
     xor eax, 0x60000000 ;; disable caching for now..
     mov cr0, eax
 
+
     jmp 0x08:0x200000
 
     ; non-reachable
+    push TEXT
+    push 13
+    push 0
+    call k_print
     jmp $;
+
+TEXT: db 'NoNoNo', 0

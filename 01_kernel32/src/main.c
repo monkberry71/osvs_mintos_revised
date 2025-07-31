@@ -5,6 +5,7 @@
 void k_print( int iX, int iY, const char* pc_string);
 BOOL k_init_kernel64_area(void);
 BOOL k_is_memory_enough(void);
+void k_copy_kernel64(void);
 
 void main(void) {
 
@@ -43,7 +44,13 @@ void main(void) {
         k_print(0,9, "CPU doesn't support 64bit mode.");
         for(;;);
     }
-    k_print(0,9, "Going 64bit");
+    k_print(0,9, "Copying kernel64 to 2M addr...");
+    k_copy_kernel64();
+    k_print(0,10, "Going 64...");
+    k_switch_kernel64();
+
+    // non-reachable
+    k_print(0,11, "Why you still here?");
     for(;;);
 }
 
@@ -54,6 +61,17 @@ void k_print(int x, int y, const char* pc_string) {
     for(int i=0; pc_string[i] != 0; i++) {
         screen[i].b_char = pc_string[i];
     }
+}
+
+void k_print_num(int x, int y, unsigned num) {
+    k_char* screen = (void*) 0xB8000;
+
+    screen += (y*80) + x;
+    // screen[0].b_char = num;
+    screen[0].b_char = (char) (num % 10 + '0');
+    screen[-1].b_char = (char) ((num / 10) % 10 + '0');
+    screen[-2].b_char = (char) ((num / 100) % 10 + '0');
+    screen[-3].b_char = (char) ((num / 1000) % 10 + '0');
 }
 
 BOOL k_init_kernel64_area(void) {
@@ -78,4 +96,27 @@ BOOL k_is_memory_enough(void) {
         curr_addr += (0x100000 / 4);
     }
     return TRUE;
+}
+
+void k_copy_kernel64(void) {
+    uint16_t kernel32_sector_count, total_sector_count;
+    uint32_t *src_addr, *dest_addr; // src_addr has a kernel64 starting address, and dest_addr is where to load that.
+
+    kernel32_sector_count = *((uint16_t*) 0x7c07);
+    total_sector_count = *((uint16_t*) 0x7c05);
+    
+    k_print_num(50, 10, kernel32_sector_count);
+    k_print_num(46, 10, total_sector_count);
+
+    src_addr = (void*) (0x10000 + (kernel32_sector_count * 512));
+    dest_addr = (void*) 0x200000;
+
+    int kernel64_byte_count = 512 * (total_sector_count - kernel32_sector_count);
+    k_print_num(42, 10, kernel64_byte_count);
+    for(int i=0; i < kernel64_byte_count; i+=4) {
+        *dest_addr = *src_addr;
+        dest_addr++;
+        src_addr++;
+        k_print_num(30, 10, i);
+    }
 }
