@@ -32,3 +32,31 @@ int main(void) {
 - 파라미터를 오른쪽에서 왼쪽 순서로 넣음.
 - 반환값은 eax
 - 호출 종류 후 파라미터를 caller가 처리함.
+
+## USB에 부트로더 담기.
+1. disk.img 파일을 dd로 usb에 옮김
+```
+sudo umount /dev/sda
+sudo dd if=disk.img of=/dev/sda bs=4M conv=fsync
+sudo sync
+```
+2. 파티션 테이블 설정
+
+플로피 디스크와는 다르게, USB는 하드디스크로 인식되므로 파티션 테이블을 설정해주어야함.
+```
+sudo sfdisk -d /dev/sda
+```
+파티션 테이블 설정 여부 확인
+```
+echo ',,83,*' | sudo sfdisk /dev/sda
+```
+
+```
+<start>, <size>, <type>, <flags>
+```
+- start가 비어있다 -> 알아서 정해라. (2048번 섹터가 정배임.)
+- size가 비어있다 -> 최대한
+- 83 -> 리눅스 파일시스템
+- flags에 * -> 이 파티션은 부트가능함.
+
+파티션을 만들어줌.
