@@ -104,7 +104,7 @@ align 8, db 0 ; assure that next label is starting at 8 byte aligned addr
 dw 0x1234 ; GDTR is 12 byte. let's add 4 zero bytes to align it to 8 bytes.
 
 GDTR:
-    dw GDT_END - GDT ; GDT size, let's say GDT is 0 and GDT_END is 2, then the right size is 2.
+    dw GDT_END - GDT - 1 ; GDT limit, let's say GDT is 0 and GDT_END is 2, then the right size is 2.
     dd (GDT-$$+0x10000) ; GDT address
 
 GDT:

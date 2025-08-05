@@ -38,7 +38,7 @@ clean:
 	rm -f disk.img
 
 test: all
-	qemu-system-x86_64 -m 64 -fda disk.img -boot a -M pc 
+	qemu-system-x86_64 -m 64 -fda disk.img -boot a -M pc -d int,cpu_reset,unimp -D qemu.log -no-reboot
 # 	-m 64 : memory 64mb
 #	-fda disk.img :  floppy img
 #	-boot a :  boot from floppy
@@ -53,7 +53,7 @@ test-nox: all
 	qemu-system-x86_64 -m 64 -fda disk.img -boot a -M pc -nographic
 
 gdb: all
-	qemu-system-x86_64 -m 64 -fda disk.img -boot a -M pc -S -gdb tcp::1234
+	qemu-system-x86_64 -m 64 -fda Disk.img -boot a -M pc -S -gdb tcp::1234 -no-reboot 
 
 load-usb: all
 	sudo dd if=disk.img of=/dev/sda bs=4M conv=fsync

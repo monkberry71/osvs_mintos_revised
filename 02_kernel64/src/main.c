@@ -1,5 +1,7 @@
 #include "types.h"
 #include "keyboard.h"
+#include "descriptor.h"
+#include "set_register.h"
 
 void k_print(int x, int y, const char* str);
 void k_print_num(int x, int y, unsigned char num);
@@ -19,14 +21,33 @@ void main(void) {
         for(;;);
     }
 
+    // GDT init
+    k_print(0, 13, "GDT init");
+    k_init_GDT_TSS();
+    k_load_GDTR( GDTR_ADDR );
+    k_print(0, 13, "GDT init pass");
+
+    k_print(0, 14, "TSS load");
+    k_load_TR( GDT_TSS_SEGMENT_OFFSET );
+    k_print(0, 14, "TSS load pass");
+    
+    k_print(0, 15, "IDT init");
+    k_init_IDT_table();
+    k_load_IDTR(IDTR_ADDR);
+    k_print(0, 15, "IDT init pass");
+
     for(;;) {
         if(k_is_output_buffer_full()) {
             uint8_t temp_SC = k_get_scan_code();
 
             if (k_convert_SC_to_ASCII(temp_SC, &( vc_temp[0]), &flags)) {
                 if((flags & KEY_FLAGS_DOWN)) {
-                    if ((unsigned) vc_temp[0] < (unsigned) 0x80) k_print(i++, 13, vc_temp);
+                    if ((unsigned) vc_temp[0] < (unsigned) 0x80) k_print(i++, 26, vc_temp);
                     k_print_num(50, 0, vc_temp[0]);
+                    if (vc_temp[0] == '0') {
+                        // test interrupt
+                        int temp = 1 / 0;
+                    }
                 }
             }
     }
