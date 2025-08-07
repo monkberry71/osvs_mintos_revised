@@ -1,5 +1,15 @@
 #include "descriptor.h"
 #include "util.h"
+#include "ISR.h"
+
+typedef void (*interrupt_handler_t)(void);
+
+#define X(n) k_interrupt_##n##_handler,
+
+interrupt_handler_t k_interrupt_handlers[] = {
+    INTERRUPT_VECTORS
+};
+#undef X
 
 void k_set_GDT_entry8(gdt_entry_8* entry, uint32_t base_addr, uint32_t limit, uint8_t upper_flags, uint8_t lower_flags, uint8_t type) {
     entry->lower_limit = limit & 0xFFFF;
@@ -61,9 +71,13 @@ void k_init_IDT_table(void) {
     IDTR_in_use->base_addr = (uint64_t) entry_in_use;
     IDTR_in_use->limit = IDT_SIZE - 1;
 
-    for (int i=0; i < IDT_MAX_ENTRY_COUNT; i++) {
+    for (int i=0; i < 48; i++) {
         // 0~99, all interrupts go to dummy handler
-        k_set_IDT_entry( &(entry_in_use[i]), k_dummy_handler, 0x08, IDT_FLAGS_IST1, IDT_FLAGS_KERNEL, IDT_TYPE_INTERRUPT);
+        k_set_IDT_entry( &(entry_in_use[i]), k_interrupt_handlers[i], 0x08, IDT_FLAGS_IST1, IDT_FLAGS_KERNEL, IDT_TYPE_INTERRUPT);
+    }
+
+    for(int i=48; i<IDT_MAX_ENTRY_COUNT; i++) {
+        k_set_IDT_entry( &(entry_in_use[i]), k_interrupt_handlers[48], 0x08, IDT_FLAGS_IST1, IDT_FLAGS_KERNEL, IDT_TYPE_INTERRUPT);
     }
 }
 

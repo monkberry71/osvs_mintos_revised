@@ -2,6 +2,8 @@
 #include "keyboard.h"
 #include "descriptor.h"
 #include "set_register.h"
+#include "PIC.h"
+#include "interrupt_helper.h"
 
 void k_print(int x, int y, const char* str);
 void k_print_num(int x, int y, unsigned char num);
@@ -36,13 +38,19 @@ void main(void) {
     k_load_IDTR(IDTR_ADDR);
     k_print(0, 15, "IDT init pass");
 
+    k_print(0, 16, "PIC init...");
+    k_init_PIC();
+    k_mask_PIC_interrupt(0);
+    k_enable_interrupt();
+    k_print(0, 16, "PIC init...pass");
+
     for(;;) {
         if(k_is_output_buffer_full()) {
             uint8_t temp_SC = k_get_scan_code();
 
             if (k_convert_SC_to_ASCII(temp_SC, &( vc_temp[0]), &flags)) {
                 if((flags & KEY_FLAGS_DOWN)) {
-                    if ((unsigned) vc_temp[0] < (unsigned) 0x80) k_print(i++, 26, vc_temp);
+                    if ((unsigned) vc_temp[0] < (unsigned) 0x80) k_print(i++, 20, vc_temp);
                     k_print_num(50, 0, vc_temp[0]);
                     if (vc_temp[0] == '0') {
                         // test interrupt

@@ -1,5 +1,5 @@
 #include "types.h"
-#include "key_inout.h"
+#include "k_inout.h"
 #include "keyboard.h"
 
 #define KEYCON_CONTROL_REGISTER 0x64
