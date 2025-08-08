@@ -1,6 +1,7 @@
 #include "interrupt_handler.h"
 #include "PIC.h"
 #include "util.h"
+#include "keyboard.h"
 
 void k_common_exception_handler(int vec_num, uint64_t e_code) {
     char vc_buffer[] = "[EXP:  ,?]";
@@ -35,6 +36,11 @@ void k_keyboard_handler(int vec_num) {
     vc_buffer[8] = '0' + g_keyboard_interrupt_count;
     g_keyboard_interrupt_count = (g_keyboard_interrupt_count + 1) % 10;
     k_print(70,2,vc_buffer);
+
+    if (k_is_output_buffer_full()) {
+        uint8_t temp = k_get_scan_code();
+        k_convert_SC_and_put_queue(temp);
+    }
 
     k_send_EOI_to_PIC(vec_num - PIC_IRQ_START_VECTOR);
 }

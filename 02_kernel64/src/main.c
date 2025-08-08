@@ -3,7 +3,7 @@
 #include "descriptor.h"
 #include "set_register.h"
 #include "PIC.h"
-#include "interrupt_helper.h"
+#include "interrupt_stack.h"
 
 void k_print(int x, int y, const char* str);
 void k_print_num(int x, int y, unsigned char num);
@@ -15,13 +15,6 @@ void main(void) {
 
     k_print(0, 11, "IA-32e Mode C kernel Starting.");
 
-    k_print(0, 12, "Keyboard activation...");
-    if (k_activate_keyboard()) {
-        k_print(0, 12, "Keyboard activation...good");
-    } else {
-        k_print(0, 12, "Keyboard is fked up.");
-        for(;;);
-    }
 
     // GDT init
     k_print(0, 13, "GDT init");
@@ -38,29 +31,57 @@ void main(void) {
     k_load_IDTR(IDTR_ADDR);
     k_print(0, 15, "IDT init pass");
 
+    k_print(0, 12, "Keyboard and keyqueue activation...");
+    if (k_init_keyboard()) {
+        k_print(0, 12, "Keyboard and keyqueue activation...good");
+    } else {
+        k_print(0, 12, "Keyboard is fked up.");
+        for(;;);
+    }
+
+
     k_print(0, 16, "PIC init...");
     k_init_PIC();
     k_mask_PIC_interrupt(0);
-    k_enable_interrupt();
+    pop_cli();
     k_print(0, 16, "PIC init...pass");
 
-    for(;;) {
-        if(k_is_output_buffer_full()) {
-            uint8_t temp_SC = k_get_scan_code();
 
-            if (k_convert_SC_to_ASCII(temp_SC, &( vc_temp[0]), &flags)) {
-                if((flags & KEY_FLAGS_DOWN)) {
-                    if ((unsigned) vc_temp[0] < (unsigned) 0x80) k_print(i++, 20, vc_temp);
-                    k_print_num(50, 0, vc_temp[0]);
-                    if (vc_temp[0] == '0') {
-                        // test interrupt
-                        int temp = 1 / 0;
-                    }
+
+
+    // for(;;) {
+    //     if(k_is_output_buffer_full()) {
+    //         uint8_t temp_SC = k_get_scan_code();
+
+    //         if (k_convert_SC_to_ASCII(temp_SC, &( vc_temp[0]), &flags)) {
+    //             if((flags & KEY_FLAGS_DOWN)) {
+    //                 if ((unsigned) vc_temp[0] < (unsigned) 0x80) k_print(i++, 20, vc_temp);
+    //                 k_print_num(50, 0, vc_temp[0]);
+    //                 if (vc_temp[0] == '0') {
+    //                     // test interrupt
+    //                     int temp = 1 / 0;
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+
+    k_key_data key_data;
+    for(;;) {
+        if (k_get_key_from_key_queue(&key_data)) {
+            if (key_data.flags & KEY_FLAGS_DOWN) {
+                vc_temp[0] = key_data.ascii;
+                k_print(i++, 20, vc_temp);
+
+                if (vc_temp[0] == '0') {
+                    // test interrupt
+                    1 / 0;
                 }
             }
+        }
     }
 }
-}
+
 
 void k_print(int x, int y, const char* str) {
     k_char* screen = (void*) 0xB8000;

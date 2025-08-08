@@ -2,6 +2,8 @@
 
 #include "types.h"
 
+#define KEY_MAX_QUEUE_COUNT 100
+
 #define KEY_COUNT_TO_SKIP_FOR_PAUSE 2 
 // To handle PAUSE, we need to skip 2 scan codes.
 
@@ -70,6 +72,12 @@ typedef struct k_keyboard_manager {
     int skip_count_for_pause;
 } k_keyboard_manager;
 
+typedef struct k_key_data_struct {
+    uint8_t scancode;
+    uint8_t ascii;
+    uint8_t flags;
+} k_key_data;
+
 /**
  * @brief  Check if the keyboard controller's output buffer is full.
  * @return TRUE if there is data to read from port 0x60, else FALSE.
@@ -117,3 +125,7 @@ void update_combination_key_status_and_led(uint8_t scan_code);
 BOOL k_convert_SC_to_ASCII(uint8_t scan_code,
                            uint8_t *out_ascii,
                            BOOL    *out_flags);
+
+BOOL k_init_keyboard(void);
+BOOL k_convert_SC_and_put_queue(uint8_t sc);
+BOOL k_get_key_from_key_queue(k_key_data* data);

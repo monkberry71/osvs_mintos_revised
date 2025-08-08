@@ -53,7 +53,7 @@ test-nox: all
 	qemu-system-x86_64 -m 64 -fda disk.img -boot a -M pc -nographic
 
 gdb: all
-	qemu-system-x86_64 -m 64 -fda Disk.img -boot a -M pc -S -gdb tcp::1234 -no-reboot 
+	qemu-system-x86_64 -m 64 -fda disk.img -boot a -M pc -S -gdb tcp::1234 -no-reboot 
 
 load-usb: all
 	sudo dd if=disk.img of=/dev/sda bs=4M conv=fsync

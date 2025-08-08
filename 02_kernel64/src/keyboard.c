@@ -1,6 +1,9 @@
 #include "types.h"
 #include "k_inout.h"
 #include "keyboard.h"
+#include "queue.h"
+#include "interrupt_stack.h"
+#include "interrupt_helper.h"
 
 #define KEYCON_CONTROL_REGISTER 0x64
 #define KEYCON_STATUS_REGISTER 0x64
@@ -21,6 +24,7 @@ BOOL k_is_input_buffer_full(void) {
 }
 
 BOOL k_activate_keyboard(void) {
+    push_cli();
     k_outb(KEYCON_CONTROL_REGISTER, 0xAE); // say to controller register that you activate keyboard.
     for(int i=0; i<0xFFFF; i++) {
         // maybe there could be already something in the input buffer, so we firstly wait until it is empty.
@@ -37,8 +41,12 @@ BOOL k_activate_keyboard(void) {
         }
 
         // 0xFA is ACK.
-        if (k_inb(KEYCON_OUTPUT_BUFFER) == 0xFA) return TRUE;
+        if (k_inb(KEYCON_OUTPUT_BUFFER) == 0xFA) {
+            pop_cli(); 
+            return TRUE;
+        }
     }
+    pop_cli();
     return FALSE; // activation failed.
 }
 
@@ -49,6 +57,9 @@ uint8_t k_get_scan_code(void) {
 }
 
 static k_keyboard_manager gs_keyboard_manager = {0,};
+
+static Queue gs_key_queue;
+static k_key_data gs_key_queue_array[KEY_MAX_QUEUE_COUNT];
 
 static k_key_mapping_entry gs_SC_to_ASCII_table[KEY_MAPPING_TABLE_MAX_COUNT] = {
     [ 0] = { KEY_NONE,       KEY_NONE       },
@@ -163,6 +174,35 @@ static k_key_mapping_entry gs_SC_to_ASCII_table[KEY_MAPPING_TABLE_MAX_COUNT] = {
     [87] = { KEY_F11,        KEY_F11        },
     [88] = { KEY_F12,        KEY_F12        },
 };
+
+BOOL k_init_keyboard(void) {
+    k_init_queue(&gs_key_queue, gs_key_queue_array, KEY_MAX_QUEUE_COUNT, sizeof(k_key_data));
+    return k_activate_keyboard();
+}
+
+BOOL k_convert_SC_and_put_queue(uint8_t sc) {
+    k_key_data key_data;
+    BOOL result = FALSE;
+    
+    key_data.scancode = sc;
+
+    if ( k_convert_SC_to_ASCII( sc, &(key_data.ascii), &(key_data.flags) ) ) {
+        push_cli();
+        result = k_put_queue(&gs_key_queue, &key_data);
+        pop_cli();
+    }
+
+    return result;
+}
+
+BOOL k_get_key_from_key_queue(k_key_data* data) {
+    // k_int_3();
+    if (k_is_queue_empty(&gs_key_queue)) return FALSE;
+    push_cli();
+    BOOL result =k_get_queue(&gs_key_queue, data);
+    pop_cli();
+    return result;
+}
 
 BOOL k_is_using_combined_code(uint8_t scan_code) {
     // find whether scan_code is affected by other keys.

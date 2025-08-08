@@ -2,6 +2,8 @@
     "files.associations": {
         "types.h": "c",
         "k_inout.h": "c",
-        "interrupt_handler.h": "c"
+        "interrupt_handler.h": "c",
+        "keyboard.h": "c",
+        "queue.h": "c"
     }
 }
