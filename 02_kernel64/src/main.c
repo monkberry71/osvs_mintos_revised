@@ -7,6 +7,7 @@
 
 void k_print(int x, int y, const char* str);
 void k_print_num(int x, int y, unsigned char num);
+extern int cli_stack;
 
 void main(void) {
     char vc_temp[2] = {0,0};
@@ -44,6 +45,7 @@ void main(void) {
     k_init_PIC();
     k_mask_PIC_interrupt(0);
     pop_cli();
+    k_print_num(45, 16, cli_stack);
     k_print(0, 16, "PIC init...pass");
 
 
@@ -67,15 +69,18 @@ void main(void) {
     // }
 
     k_key_data key_data;
-    for(;;) {
+    for(int k=0;;k++) {
+        
+        k_print(65,0, "figuring buffer");
         if (k_get_key_from_key_queue(&key_data)) {
+            k_print_num(70, 5, k);
             if (key_data.flags & KEY_FLAGS_DOWN) {
                 vc_temp[0] = key_data.ascii;
                 k_print(i++, 20, vc_temp);
 
                 if (vc_temp[0] == '0') {
                     // test interrupt
-                    1 / 0;
+                    int temp = 1 / 0;
                 }
             }
         }

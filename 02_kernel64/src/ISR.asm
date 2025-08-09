@@ -89,7 +89,7 @@ k_interrupt_%1_handler:
 
     ; 3) Exceptions that pushed an error code
 %elif %1 == 8  or %1 == 10 or %1 == 11 or %1 == 12 or \
-     %1 == 13 or %1 == 14 or %1 == 17
+    %1 == 13 or %1 == 14 or %1 == 17
     mov     rsi, qword [rbp+8]
     call    k_common_exception_handler
 
