@@ -199,7 +199,7 @@ BOOL k_get_key_from_key_queue(k_key_data* data) {
     // k_int_3();
     
     if (k_is_queue_empty(&gs_key_queue)) {
-        k_print(65,0, "buffer is empty");
+        // k_print(65,0, "buffer is empty");
         return FALSE;
     }
     push_cli();
