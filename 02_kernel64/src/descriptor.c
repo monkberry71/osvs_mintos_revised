@@ -94,6 +94,6 @@ void k_set_IDT_entry(idt_entry* entry, void* handler, uint16_t selector, uint8_t
 
 
 void k_dummy_handler(void) {
-    k_print(0,0, "INTERRUPT INCOMMING!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    // k_print(0,0, "INTERRUPT INCOMMING!!!!!!!!!!!!!!!!!!!!!!!!!!!");
     for(;;);
 }

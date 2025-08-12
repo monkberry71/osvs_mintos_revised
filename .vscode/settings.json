@@ -4,6 +4,8 @@
         "k_inout.h": "c",
         "interrupt_handler.h": "c",
         "keyboard.h": "c",
-        "queue.h": "c"
+        "queue.h": "c",
+        "console.h": "c",
+        "util.h": "c"
     }
 }
