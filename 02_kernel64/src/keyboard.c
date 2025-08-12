@@ -197,9 +197,13 @@ BOOL k_convert_SC_and_put_queue(uint8_t sc) {
 
 BOOL k_get_key_from_key_queue(k_key_data* data) {
     // k_int_3();
-    if (k_is_queue_empty(&gs_key_queue)) return FALSE;
+    
+    if (k_is_queue_empty(&gs_key_queue)) {
+        k_print(65,0, "buffer is empty");
+        return FALSE;
+    }
     push_cli();
-    BOOL result =k_get_queue(&gs_key_queue, data);
+    BOOL result = k_get_queue(&gs_key_queue, data);
     pop_cli();
     return result;
 }

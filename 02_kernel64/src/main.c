@@ -9,6 +9,7 @@
 #include "util.h"
 
 void k_print_num(int x, int y, unsigned char num);
+extern int cli_stack;
 
 void main(void) {
 
@@ -57,6 +58,7 @@ void main(void) {
 
 
 
+
     // for(;;) {
     //     if(k_is_output_buffer_full()) {
     //         uint8_t temp_SC = k_get_scan_code();
@@ -73,7 +75,6 @@ void main(void) {
     //         }
     //     }
     // }
-
     // k_key_data key_data;
     // for(;;) {
     //     if (k_get_key_from_key_queue(&key_data)) {
@@ -88,9 +89,8 @@ void main(void) {
     //         }
     //     }
     // }
+
 }
-
-
 // void k_print(int x, int y, const char* str) {
 //     k_char* screen = (void*) 0xB8000;
 //     screen += (80 * y) + x;

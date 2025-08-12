@@ -4,6 +4,9 @@
 #include "keyboard.h"
 #include "console.h"
 
+// please don't use cli or sti inside of the handlers,
+// handlers will set IF to 0, but sti inside of it will fuck it up.
+
 void k_common_exception_handler(int vec_num, uint64_t e_code) {
     char vc_buffer[] = "[EXP:  ,?]";
 
