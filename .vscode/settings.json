@@ -6,6 +6,7 @@
         "keyboard.h": "c",
         "queue.h": "c",
         "console.h": "c",
-        "util.h": "c"
+        "util.h": "c",
+        "pit.h": "c"
     }
 }

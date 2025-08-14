@@ -2,13 +2,22 @@
 #include "console.h"
 #include "keyboard.h"
 #include "util.h"
+#include "PIT.h"
+#include "RTC.h"
+#include "read_TSC.h"
+#include "interrupt_stack.h"
 
 k_shell_cmd_entry gs_cmd_table[] = {
     {"help", "Show help", k_shell_help},
     {"clear", "Clear screen", k_shell_clear},
     {"totalram", "Show total RAM size", k_shell_totalram},
     {"strtod", "string to decimal/hex converter", k_shell_string_to_decimal_hex_test},
-    {"shutdown", "shutdown and reboot OS", k_shutdown}
+    {"shutdown", "shutdown and reboot OS", k_shutdown},
+    {"settimer", "Set PIT counter0", k_shell_settimer},
+    {"wait", "wait ms with PIT", k_shell_wait_using_PIT},
+    {"rdtsc", "Read Time stamp counter", k_shell_read_TSC},
+    {"cpuspeed", "Measure processor speed", k_shell_measure_processor_speed},
+    {"date", "Show date and time", k_shell_show_date_and_time}
 };
 
 void k_exec_cmd(const char* cmd_buffer) {
@@ -53,6 +62,9 @@ void k_start_shell (void) {
                 cmd_buffer[cmd_buffer_index] = '\0';
                 k_exec_cmd(cmd_buffer);
             }
+            k_printf("%s", SHELL_PROMPT_MSG);
+            k_memset(cmd_buffer, '\0', SHELL_MAX_CMD_BUFFER_COUNT);
+            cmd_buffer_index = 0;
         } else if (key == KEY_LSHIFT || key == KEY_RSHIFT || key == KEY_CAPSLOCK || key == KEY_NUMLOCK || key == KEY_SCROLLLOCK);
         else {
             if (key == KEY_TAB) key = ' ';
@@ -145,6 +157,84 @@ void k_shell_string_to_decimal_hex_test(const char* param_buffer) {
 
         count++;
     }
+}
+
+void k_shell_settimer(const char* param_buffer) {
+    char param[100];
+    k_param_list param_list;
+    
+    k_init_param(&param_list, param_buffer);
+
+    if (k_get_next_param(&param_list, param) == 0) {
+        k_printf("usage: settimer (ms) (periodic)\n");
+        return ;
+    }
+    long ms = k_atoi(param, 10);
+
+    if (k_get_next_param(&param_list, param) == 0) {
+        k_printf("usage: settimer (ms) (periodic)\n");
+        return ;
+    }
+    BOOL is_periodic = k_atoi(param, 10);
+
+    k_init_PIT(MS_TO_COUNT(ms), is_periodic);
+    k_printf("Time = %d ms, periodic = %d change complete.\n", ms, is_periodic);
+}
+
+void k_shell_wait_using_PIT(const char* param_buffer) {
+    char param[100];
+    k_param_list param_list;
+
+    k_init_param(&param_list, param_buffer);
+        if (k_get_next_param(&param_list, param) == 0) {
+        k_printf("usage: wait (ms)\n");
+        return ;
+    }
+    long ms = k_atoi(param_buffer, 10);
+    k_printf("%d ms sleep start...\n", ms);
+
+    push_cli();
+    for(int i=0; i < ms / 30; i++) {
+        k_wait_using_direct_PIT(MS_TO_COUNT(30));
+    }
+    k_wait_using_direct_PIT(MS_TO_COUNT(ms % 30));
+    pop_cli();
+
+    k_printf("%d ms sleep complete.\n", ms);
+
+    k_init_PIT(MS_TO_COUNT(1), TRUE);
+}
+
+void k_shell_read_TSC(const char* param_buffer) {
+    uint64_t tsc = k_read_TSC();
+    k_printf("TSC = %q\n", tsc);
+}
+
+void k_shell_measure_processor_speed(const char* param_buffer) {
+    k_printf("Measuring...");
+    uint64_t total_tsc = 0;
+    push_cli();
+    for(int i=0; i<200; i++) {
+        uint64_t last_tsc = k_read_TSC();
+        k_wait_using_direct_PIT(MS_TO_COUNT(50));
+        total_tsc += k_read_TSC() - last_tsc;
+
+        k_printf(".");
+    }
+    k_init_PIT(MS_TO_COUNT(1), TRUE);
+    pop_cli();
+    k_printf("\n CPU speed = %d Mhz\n", total_tsc / 10 / 1000 / 1000);
+}
+
+void k_shell_show_date_and_time(const char* param_buffer) {
+    uint8_t sec, min, hour;
+    uint8_t weekday, day, month;
+    uint16_t year;
+    k_read_RTC_time(&hour, &min, &sec);
+    k_read_RTC_date(&year, &month, &day, &weekday);
+
+    k_printf("Date : %d/%d/%d %s", year, month, day, k_convert_weekday_to_str(weekday));
+    k_printf("Time : %d:%d:%d\n", hour, min, sec);
 }
 
 void k_shutdown(const char* param_buffer) {

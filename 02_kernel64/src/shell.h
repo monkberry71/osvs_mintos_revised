@@ -34,3 +34,8 @@ void k_shell_clear(const char* param_buffer);
 void k_shell_totalram(const char* param_buffer);
 void k_shell_string_to_decimal_hex_test(const char* param_buffer);
 void k_shutdown(const char* param_buffer);
+void k_shell_settimer(const char* param_buffer);
+void k_shell_wait_using_PIT(const char* param_buffer);
+void k_shell_read_TSC(const char* param_buffer);
+void k_shell_measure_processor_speed(const char* param_buffer);
+void k_shell_show_date_and_time(const char* param_buffer);
