@@ -6,3 +6,5 @@
 *.dep
 *.elf
 *.o
+
+.vscode
